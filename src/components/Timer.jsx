@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react"
+import React from "react"
+
 import { Box, Typography } from "@mui/material"
 
 function Timer({ secondsPassed }) {
-  const [timer, setTimer] = useState("0:00")
-
-  useEffect(() => {
+  const renderTimer = () => {
     let minute = Math.floor(secondsPassed / 60) || 0
     let seconds = Math.round(secondsPassed % 60) || 0
 
@@ -12,12 +11,12 @@ function Timer({ secondsPassed }) {
       seconds = "0" + seconds
     }
 
-    setTimer(`${minute}:${seconds}`)
-  }, [secondsPassed])
+    return `${minute}:${seconds}`
+  }
 
   return (
     <Box sx={{ textAlign: "center" }}>
-      <Typography color={"grey"}>{timer}</Typography>
+      <Typography color={"grey"}>{renderTimer()}</Typography>
     </Box>
   )
 }

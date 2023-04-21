@@ -1,14 +1,10 @@
-import React, { useEffect, useState } from "react"
+import React from "react"
+
 import { Box } from "@mui/material"
 import SnowmobileIcon from "@mui/icons-material/Snowmobile"
 
 function RaceTrack({ text, cursorPos, speed }) {
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    let currentProgress = (cursorPos / text.length) * 100
-    setProgress(currentProgress)
-  }, [text, cursorPos, setProgress])
+  let raceProgress = (cursorPos / text.length) * 100
 
   return (
     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
@@ -17,7 +13,7 @@ function RaceTrack({ text, cursorPos, speed }) {
           sx={{
             width: "40px",
             height: "20px",
-            marginLeft: `${progress}%`,
+            marginLeft: `${raceProgress}%`,
             mb: 0.6,
           }}
         >

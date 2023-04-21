@@ -10,21 +10,41 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import { COLORS } from "../styles/colors"
 
 function Timeline({ typingTimeline, text }) {
-  const [secondsPassed, setSecondsPassed] = useState(0)
   const [cursorPos, setCursorPos] = useState(0)
   const [errorLength, setErrorLength] = useState(0)
-  const [paraRendered, setParaRendered] = useState()
   const [isPaused, setIsPaused] = useState(true)
   const [timeoutIds, setTimeoutIds] = useState([])
   const [currentTimestamp, setCurrentTimestamp] = useState(
     typingTimeline[0].timestamp
   )
-  const [wordBreakTimestamps] = useState(
-    // TODO: Add check with cursorPos to only allow break one time for a curosPos
 
-    typingTimeline.filter((x) => x.key === " ")
-  )
-  const [startTimestamp] = useState(typingTimeline[0].timestamp)
+  // TODO: Add check with cursorPos to only allow break one time for a curosPos
+  const wordBreakTimestamps = typingTimeline.filter((x) => x.key === " ")
+  const startTimestamp = typingTimeline[0].timestamp
+  const timeElapsed = currentTimestamp - startTimestamp
+  const secondsPassed = new Date(timeElapsed).getSeconds()
+
+  const renderParagraph = () => {
+    let beforeCursorText = text.substring(0, cursorPos)
+    let afterCursorText = text.substring(cursorPos, text.length)
+
+    let errorText = afterCursorText.substring(0, errorLength)
+    let nonErrorText = afterCursorText.substring(
+      errorLength,
+      afterCursorText.length
+    )
+
+    return (
+      <>
+        <span style={{}}>{beforeCursorText}</span>
+        <span style={{ color: "#003fac" }}>|</span>
+        <span style={{ backgroundColor: `${COLORS.RedError}` }}>
+          {errorText}
+        </span>
+        <span style={{ color: "#8d8686" }}>{nonErrorText}</span>
+      </>
+    )
+  }
 
   const PlayTimeline = () => {
     if (!typingTimeline.length) return
@@ -114,44 +134,13 @@ function Timeline({ typingTimeline, text }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused])
 
-  useEffect(() => {
-    let timeElapsed = currentTimestamp - startTimestamp
-    setSecondsPassed(new Date(timeElapsed).getSeconds())
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTimestamp])
-
-  useEffect(() => {
-    let beforeCursorText = text.substring(0, cursorPos)
-    let afterCursorText = text.substring(cursorPos, text.length)
-
-    let errorText = afterCursorText.substring(0, errorLength)
-    let remainingText = afterCursorText.substring(
-      errorLength,
-      afterCursorText.length
-    )
-
-    setParaRendered(
-      <>
-        <span style={{}}>{beforeCursorText}</span>
-        <span style={{ color: "#003fac" }}>|</span>
-        <span style={{ backgroundColor: `${COLORS.RedError}` }}>
-          {errorText}
-        </span>
-        <span style={{ color: "#8d8686" }}>{remainingText}</span>
-      </>
-    )
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursorPos, errorLength])
-
   return (
     <>
       <Paper
         elevation={1}
         sx={{ backgroundColor: "#a1d6fadc", padding: "0.3rem" }}
       >
-        <Box>{paraRendered}</Box>
+        <Box>{renderParagraph()}</Box>
 
         <ButtonGroup
           sx={{ margin: "0.4rem" }}
