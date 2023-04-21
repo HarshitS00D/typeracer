@@ -10,17 +10,21 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt"
 import { COLORS } from "../styles/colors"
 
 function Timeline({ typingTimeline, text }) {
+  const [secondsPassed, setSecondsPassed] = useState(0)
   const [cursorPos, setCursorPos] = useState(0)
   const [errorLength, setErrorLength] = useState(0)
   const [paraRendered, setParaRendered] = useState()
   const [isPaused, setIsPaused] = useState(true)
   const [timeoutIds, setTimeoutIds] = useState([])
   const [currentTimestamp, setCurrentTimestamp] = useState(
-    typingTimeline.length > 0 ? typingTimeline[0].timestamp : null
+    typingTimeline[0].timestamp
   )
   const [wordBreakTimestamps] = useState(
+    // TODO: Add check with cursorPos to only allow break one time for a curosPos
+
     typingTimeline.filter((x) => x.key === " ")
   )
+  const [startTimestamp] = useState(typingTimeline[0].timestamp)
 
   const PlayTimeline = () => {
     if (!typingTimeline.length) return
@@ -49,11 +53,38 @@ function Timeline({ typingTimeline, text }) {
   }
 
   const RewindTimeline = () => {
+    if (currentTimestamp <= wordBreakTimestamps[0].timestamp) {
+      return
+    }
+
     for (let i = 0; i < wordBreakTimestamps.length; i++) {
-      if (wordBreakTimestamps[i].timestamp >= currentTimestamp) {
-        let lastWord = wordBreakTimestamps[i > 0 ? i - 1 : i]
-        setCurrentTimestamp(lastWord.timestamp)
-        setCursorPos(lastWord.cursorPos)
+      let currentBreak = wordBreakTimestamps[i]
+
+      if (currentBreak.timestamp >= currentTimestamp) {
+        let prevBreak = wordBreakTimestamps[i - 1]
+        setCurrentTimestamp(prevBreak.timestamp)
+        setCursorPos(prevBreak.cursorPos)
+        setErrorLength(prevBreak.errorLength)
+        ClearAllTimeouts()
+        break
+      }
+    }
+  }
+
+  const ForwardTimeline = () => {
+    if (
+      currentTimestamp >=
+      wordBreakTimestamps[wordBreakTimestamps.length - 1].timestamp
+    )
+      return
+
+    for (let i = 0; i < wordBreakTimestamps.length; i++) {
+      let currentBreak = wordBreakTimestamps[i]
+
+      if (currentBreak.timestamp > currentTimestamp) {
+        setCurrentTimestamp(currentBreak.timestamp)
+        setCursorPos(currentBreak.cursorPos)
+        setErrorLength(currentBreak.errorLength)
         ClearAllTimeouts()
         break
       }
@@ -65,14 +96,13 @@ function Timeline({ typingTimeline, text }) {
 
     setCurrentTimestamp(typingTimeline[0].timestamp)
     setCursorPos(0)
+    setErrorLength(0)
     ClearAllTimeouts()
   }
 
   const ClearAllTimeouts = () => {
     timeoutIds.forEach((id) => clearInterval(id))
   }
-
-  useEffect(() => {}, [])
 
   useEffect(() => {
     if (isPaused) {
@@ -83,6 +113,13 @@ function Timeline({ typingTimeline, text }) {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused])
+
+  useEffect(() => {
+    let timeElapsed = currentTimestamp - startTimestamp
+    setSecondsPassed(new Date(timeElapsed).getSeconds())
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTimestamp])
 
   useEffect(() => {
     let beforeCursorText = text.substring(0, cursorPos)
@@ -115,12 +152,14 @@ function Timeline({ typingTimeline, text }) {
         sx={{ backgroundColor: "#a1d6fadc", padding: "0.3rem" }}
       >
         <Box>{paraRendered}</Box>
+
         <ButtonGroup
           sx={{ margin: "0.4rem" }}
           color="primary"
           variant="contained"
           size="small"
         >
+          <Button>{secondsPassed}</Button>
           <Button onClick={RestartTimeline}>
             <RestartAltIcon />
           </Button>
@@ -130,7 +169,7 @@ function Timeline({ typingTimeline, text }) {
           <Button onClick={() => setIsPaused((isPaused) => !isPaused)}>
             {isPaused ? <PlayArrowRoundedIcon /> : <PauseRoundedIcon />}
           </Button>
-          <Button>
+          <Button onClick={ForwardTimeline}>
             <ArrowRightIcon />
           </Button>
         </ButtonGroup>

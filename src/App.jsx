@@ -76,7 +76,7 @@ function App() {
 
     let paraHtml = (
       <>
-        <span style={{ backgroundColor: "#8af0bae0" }}>{textCovered}</span>
+        <span style={{ color: "#79ca4adf" }}>{textCovered}</span>
         <span style={{ backgroundColor: `${COLORS.RedError}` }}>
           {textError}
         </span>
